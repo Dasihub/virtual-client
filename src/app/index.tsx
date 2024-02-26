@@ -8,7 +8,6 @@ const App: FC = () => {
 
 	return (
 		<>
-			{isAuth && <Navigation />}
 			<Routing />
 		</>
 	)

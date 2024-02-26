@@ -23,7 +23,7 @@ export const Auth: FC = () => {
 						<h1 style={{ textAlign: 'center' }}>Авторизация</h1>
 					</Form.Item>
 
-					<Form.Item label='Логин' required>
+					<Form.Item label='Логин'>
 						<Controller
 							control={control}
 							rules={{ required: true }}
@@ -32,7 +32,7 @@ export const Auth: FC = () => {
 						/>
 					</Form.Item>
 
-					<Form.Item label='Пароль' required>
+					<Form.Item label='Пароль'>
 						<Controller
 							control={control}
 							rules={{ required: true }}
