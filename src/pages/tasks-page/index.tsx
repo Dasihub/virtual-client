@@ -1,9 +1,11 @@
 import { FC } from 'react'
+import { Tasks } from '~/features/task'
+import { BaseLayout } from '~/widgets/ui'
 
 export const TasksPage: FC = () => {
 	return (
-		<>
-			<h1>Таски</h1>
-		</>
+		<BaseLayout>
+			<Tasks />
+		</BaseLayout>
 	)
 }

@@ -1,12 +1,15 @@
-import { FC } from 'react'
+import { FC, useState } from 'react'
 import { Button, Card, Flex, Form, Input, Typography } from 'antd'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { MAIN_ROUTING, rulesController } from '~/shared/lib'
 import { Controller, useForm } from 'react-hook-form'
 import { tRegistrationForm } from './types.ts'
 import { ErrorText } from '~/entities/error-text'
+import { useRegistration } from '~/features/registration/queries'
 
 export const Registration: FC = () => {
+	const navigate = useNavigate()
+	const [message, setMessage] = useState<string>('')
 	const {
 		control,
 		handleSubmit,
@@ -19,7 +22,11 @@ export const Registration: FC = () => {
 		}
 	})
 
-	const submit = () => {}
+	const { mutate, isLoading } = useRegistration(setMessage, navigate)
+
+	const submit = (formData: tRegistrationForm) => {
+		mutate(formData)
+	}
 
 	return (
 		<Flex style={{ minHeight: '100vh', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
@@ -76,6 +83,8 @@ export const Registration: FC = () => {
 							Зарегистрироваться
 						</Button>
 					</Form.Item>
+
+					<Flex justify='center'>{!!message.length && <ErrorText>{message}</ErrorText>}</Flex>
 
 					<Form.Item>
 						<Flex justify='center' gap={10}>

@@ -1,11 +1,16 @@
-import { FC } from 'react'
+import { FC, useContext, useState } from 'react'
 import { Button, Card, Flex, Form, Input, Typography } from 'antd'
 import { NavLink } from 'react-router-dom'
 import { MAIN_ROUTING } from '~/shared/lib'
 import { tAuthForm } from './types.ts'
 import { Controller, useForm } from 'react-hook-form'
+import { useAuth } from '~/features/auth'
+import { AuthContext } from '~/shared/context'
+import { ErrorText } from '~/entities/error-text'
 
 export const Auth: FC = () => {
+	const { changeUser } = useContext(AuthContext)
+	const [message, setMessage] = useState<string>('')
 	const { control, handleSubmit, formState } = useForm<tAuthForm>({
 		defaultValues: {
 			login: '',
@@ -13,7 +18,12 @@ export const Auth: FC = () => {
 		}
 	})
 
-	const submit = () => {}
+	const { mutate, isLoading } = useAuth(changeUser, setMessage)
+
+	const submit = (formData: tAuthForm) => {
+		setMessage('')
+		mutate(formData)
+	}
 
 	return (
 		<Flex style={{ minHeight: '100vh', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
@@ -43,7 +53,8 @@ export const Auth: FC = () => {
 
 					<Form.Item>
 						<Button
-							disabled={!formState.isValid}
+							disabled={!formState.isValid || isLoading}
+							loading={isLoading}
 							onClick={handleSubmit(submit)}
 							htmlType='submit'
 							size='large'
@@ -53,6 +64,8 @@ export const Auth: FC = () => {
 							Вход
 						</Button>
 					</Form.Item>
+
+					<Flex justify='center'>{!!message.length && <ErrorText>{message}</ErrorText>}</Flex>
 
 					<Form.Item>
 						<Flex justify='center' gap={10}>
