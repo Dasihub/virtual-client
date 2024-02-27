@@ -79,7 +79,14 @@ export const Registration: FC = () => {
 					</Form.Item>
 
 					<Form.Item>
-						<Button onClick={handleSubmit(submit)} htmlType='submit' size='large' type='primary' style={{ width: '100%' }}>
+						<Button
+							onClick={handleSubmit(submit)}
+							loading={isLoading}
+							htmlType='submit'
+							size='large'
+							type='primary'
+							style={{ width: '100%' }}
+						>
 							Зарегистрироваться
 						</Button>
 					</Form.Item>

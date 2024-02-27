@@ -18,7 +18,9 @@ export const AppHeader: FC = () => {
 				height: 'fit-content'
 			}}
 		>
-			<Flex justify='flex-end' align='center'>
+			<Flex justify='space-between' align='center'>
+				<img src='/vite.svg' alt='vite' />
+
 				<Typography.Title style={{ margin: 0 }} level={3}>
 					{user.name}
 				</Typography.Title>
