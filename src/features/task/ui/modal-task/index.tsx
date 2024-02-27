@@ -1,36 +1,46 @@
-import { FC } from 'react'
-import { Button, Form, Input, Modal } from 'antd'
+import { FC, useEffect } from 'react'
+import { Form, Input, Modal, Switch } from 'antd'
 import { Controller, useForm } from 'react-hook-form'
 import { tTaskForm } from '~/features/task'
 import { rulesController } from '~/shared/lib'
 import { ErrorText } from '~/entities/error-text'
 import { IProps } from './types.ts'
 
-export const ModalTask: FC<IProps> = ({ hideModal, createTask, isLoadingCreate }) => {
+export const ModalTask: FC<IProps> = ({ hideModal, createUpdateTask, isLoading, task }) => {
 	const {
 		control,
-		formState: { errors },
-		handleSubmit
+		setValue,
+		handleSubmit,
+		formState: { errors }
 	} = useForm<tTaskForm>({
 		defaultValues: {
 			title: '',
-			description: ''
+			description: '',
+			completed: false
 		}
 	})
 
 	const submit = (formData: tTaskForm) => {
-		createTask(formData)
+		createUpdateTask(formData)
 	}
+
+	useEffect(() => {
+		if (task) {
+			setValue('title', task.title)
+			setValue('description', task.description)
+			setValue('completed', task.completed)
+		}
+	}, [])
 
 	return (
 		<Modal
-			title={'Создать задачу'}
+			title={task ? 'Изменить задачу' : 'Создать задачу'}
 			open
 			cancelText='Закрыть'
 			okText='Сохранить'
 			onCancel={hideModal}
 			onOk={handleSubmit(submit)}
-			confirmLoading={isLoadingCreate}
+			confirmLoading={isLoading}
 		>
 			<Form layout='vertical' onFinish={handleSubmit(submit)}>
 				<Form.Item label='Наименование задачи' required>
@@ -54,6 +64,12 @@ export const ModalTask: FC<IProps> = ({ hideModal, createTask, isLoadingCreate }
 						name='description'
 					/>
 				</Form.Item>
+
+				{!!task && (
+					<Form.Item label='Изменить статус задачи'>
+						<Controller control={control} render={({ field }) => <Switch {...field} />} name='completed' />
+					</Form.Item>
+				)}
 			</Form>
 		</Modal>
 	)

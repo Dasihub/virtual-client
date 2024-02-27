@@ -1,26 +1,67 @@
 import { FC, useContext, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Collapse, CollapseProps, Flex, Skeleton, Switch, Typography } from 'antd'
-import { ITask, ModalTask, tTaskForm, useCreateTask, useGetAllTask } from '~/features/task'
+import { Button, Card, Collapse, CollapseProps, Flex, Input, Skeleton, Switch, Typography } from 'antd'
+import {
+	ITask,
+	ModalTask,
+	tTaskForm,
+	useCreateTask,
+	useDeleteTask,
+	useGetAllTask,
+	useUpdateCompleted,
+	useUpdateTask
+} from '~/features/task'
 import { AuthContext } from '~/shared/context'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { Controller, useForm } from 'react-hook-form'
 
 export const Tasks: FC = () => {
+	const { control, watch } = useForm<{ search: string }>({
+		defaultValues: {
+			search: ''
+		}
+	})
 	const { user } = useContext(AuthContext)
-	const { data, isLoading } = useGetAllTask(user._id)
+	const { data, isLoading, isFetching } = useGetAllTask(user._id, watch('search'))
+
 	const [isShowModal, setIsShowModal] = useState<boolean>(false)
+	const [taskId, setTaskId] = useState<string>('')
 
 	const [content, setContent] = useState<ITask[]>([])
 	const showModal = () => {
 		setIsShowModal(true)
 	}
+
 	const hideModal = () => {
 		setIsShowModal(false)
+		setTaskId('')
 	}
 
-	const { mutate: mutateCreate, isLoading: isLoadingCreate } = useCreateTask(hideModal, setContent)
+	const changeTaskId = (taskId: string) => {
+		showModal()
+		setTaskId(taskId)
+	}
 
-	const createTask = ({ description, title }: tTaskForm) => {
+	const { mutate: mutateDelete } = useDeleteTask()
+	const { mutate: mutateUpdateCompleted } = useUpdateCompleted()
+	const { mutate: mutateCreate, isLoading: isLoadingCreate } = useCreateTask(hideModal)
+	const { mutate: mutateUpdate, isLoading: isLoadingUpdate } = useUpdateTask(hideModal)
+
+	const createUpdateTask = ({ description, title, completed }: tTaskForm) => {
+		if (taskId.length) {
+			return mutateUpdate({ taskId, title, description, completed })
+		}
 		mutateCreate({ userId: user._id, description, title })
+	}
+
+	const changeCompleted = (completed: boolean, taskId: string) => {
+		mutateUpdateCompleted({ completed, taskId })
+		const updateContent = content.map(item => {
+			if (item._id === taskId) {
+				return { ...item, completed }
+			}
+			return item
+		})
+		setContent(updateContent)
 	}
 
 	const itemsData = useMemo(() => {
@@ -36,14 +77,14 @@ export const Tasks: FC = () => {
 						<Flex onClick={e => e.stopPropagation()} gap={20} align='center'>
 							<Flex gap={10} align='center'>
 								<Typography.Text>{item.completed ? 'Задача выполено' : 'Задача не выполнено'}</Typography.Text>
-								<Switch checked={item.completed} />
+								<Switch onChange={completed => changeCompleted(completed, item._id)} checked={item.completed} />
 							</Flex>
 
-							<Button type='primary' danger>
+							<Button type='primary' danger onClick={() => mutateDelete({ taskId: item._id })}>
 								<DeleteOutlined />
 							</Button>
 
-							<Button type='primary'>
+							<Button type='primary' onClick={() => changeTaskId(item._id)}>
 								<EditOutlined />
 							</Button>
 						</Flex>
@@ -64,11 +105,23 @@ export const Tasks: FC = () => {
 
 	return (
 		<>
-			{isShowModal && <ModalTask isLoadingCreate={isLoadingCreate} createTask={createTask} hideModal={hideModal} />}
+			{isShowModal && (
+				<ModalTask
+					hideModal={hideModal}
+					createUpdateTask={createUpdateTask}
+					task={content.find(item => item._id === taskId)}
+					isLoading={isLoadingCreate || isLoadingUpdate}
+				/>
+			)}
 
 			<Flex vertical gap={20}>
 				<Card>
-					<Flex justify='flex-end'>
+					<Flex justify='flex-end' gap={20}>
+						<Controller
+							control={control}
+							render={({ field }) => <Input.Search {...field} size='large' allowClear />}
+							name='search'
+						/>
 						<Button size='large' type='primary' onClick={showModal}>
 							Создать
 						</Button>
@@ -76,9 +129,13 @@ export const Tasks: FC = () => {
 				</Card>
 
 				{isLoading ? (
-					new Array(5).fill(5).map(() => <Skeleton.Button style={{ width: '100%', height: 68 }} active />)
-				) : (
+					new Array(5).fill(5).map((_, index) => <Skeleton.Button key={index} style={{ width: '100%', height: 68 }} active />)
+				) : content.length ? (
 					<Collapse size='large' items={itemsData} />
+				) : (
+					<Typography.Title level={4} style={{ textAlign: 'center' }}>
+						Нет задач
+					</Typography.Title>
 				)}
 			</Flex>
 		</>

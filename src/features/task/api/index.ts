@@ -3,11 +3,11 @@ import { ITask } from '~/features/task'
 import { AxiosResponse } from 'axios'
 
 class ApiTask {
-	async getAllTasks(userId: string): Promise<ITask[]> {
+	async searchTask(userId: string, title: string): Promise<ITask[]> {
 		try {
 			const {
 				data: { data }
-			} = await api({ url: `/task/${userId}` })
+			} = await api({ url: `/task/${userId}/search?title=${title}` })
 			return data
 		} catch (e) {
 			console.log(e)
@@ -22,9 +22,27 @@ class ApiTask {
 		}
 	}
 
-	async updateTask(taskId: string, title: string, description: string, completed: string): Promise<number> {
+	async updateTask(taskId: string, title: string, description: string, completed: boolean): Promise<number> {
 		try {
 			const { status } = await api({ url: '/task', method: 'PUT', data: { taskId, title, description, completed } })
+			return status
+		} catch (e) {
+			console.log(e)
+		}
+	}
+
+	async updateCompleted(taskId: string, completed: boolean) {
+		try {
+			const { status } = await api({ url: `/task/${taskId}?completed=${completed}`, method: 'PATCH' })
+			return status
+		} catch (e) {
+			console.log(e)
+		}
+	}
+
+	async deleteTask(taskId: string) {
+		try {
+			const { status } = await api({ url: `/task/${taskId}`, method: 'DELETE' })
 			return status
 		} catch (e) {
 			console.log(e)

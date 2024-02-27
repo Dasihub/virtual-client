@@ -10,4 +10,5 @@ export interface ITask {
 export type tTaskForm = {
 	title: string
 	description: string
+	completed: boolean
 }
