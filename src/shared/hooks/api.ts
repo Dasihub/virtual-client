@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
-export const baseUrl = 'http://localhost:5000/api'
+export const baseUrl = '/api'
 
 const axiosInstance = axios.create({
 	baseURL: baseUrl,
