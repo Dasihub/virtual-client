@@ -1,5 +1,5 @@
 import { FC, useContext, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Collapse, CollapseProps, Flex, Input, Skeleton, Switch, Typography } from 'antd'
+import { Button, Card, Collapse, CollapseProps, Flex, Input, Modal, Skeleton, Switch, Typography } from 'antd'
 import {
 	ITask,
 	ModalTask,
@@ -15,11 +15,12 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { Controller, useForm } from 'react-hook-form'
 
 export const Tasks: FC = () => {
-	const { control, watch } = useForm<{ search: string }>({
+	const { control, watch, setValue } = useForm<{ search: string }>({
 		defaultValues: {
 			search: ''
 		}
 	})
+	const [modal, contextModal] = Modal.useModal()
 	const { user } = useContext(AuthContext)
 	const { data, isLoading, isFetching } = useGetAllTask(user._id, watch('search'))
 
@@ -50,6 +51,7 @@ export const Tasks: FC = () => {
 		if (taskId.length) {
 			return mutateUpdate({ taskId, title, description, completed })
 		}
+		setValue('search', '')
 		mutateCreate({ userId: user._id, description, title })
 	}
 
@@ -62,6 +64,22 @@ export const Tasks: FC = () => {
 			return item
 		})
 		setContent(updateContent)
+	}
+	const confirmDeleteProps = (taskId_: string) => {
+		mutateDelete({ taskId: taskId_ })
+	}
+
+	const showAlert = async (taskId_: string) => {
+		const isConfirm = await modal.warning({
+			title: 'Внимание!',
+			okText: 'Да',
+			okCancel: true,
+			cancelText: 'Не',
+			content: <Typography.Text>Вы действительно хотите удалить задачу?</Typography.Text>
+		})
+		if (isConfirm) {
+			confirmDeleteProps(taskId_)
+		}
 	}
 
 	const itemsData = useMemo(() => {
@@ -80,7 +98,7 @@ export const Tasks: FC = () => {
 								<Switch onChange={completed => changeCompleted(completed, item._id)} checked={item.completed} />
 							</Flex>
 
-							<Button type='primary' danger onClick={() => mutateDelete({ taskId: item._id })}>
+							<Button type='primary' danger onClick={() => showAlert(item._id)}>
 								<DeleteOutlined />
 							</Button>
 
@@ -105,6 +123,7 @@ export const Tasks: FC = () => {
 
 	return (
 		<>
+			{contextModal}
 			{isShowModal && (
 				<ModalTask
 					hideModal={hideModal}

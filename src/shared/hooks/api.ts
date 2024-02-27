@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
-export const baseUrl = '/api'
+export const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/api' : '/api'
 
 const axiosInstance = axios.create({
 	baseURL: baseUrl,
